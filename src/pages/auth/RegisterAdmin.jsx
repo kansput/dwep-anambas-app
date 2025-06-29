@@ -2,20 +2,21 @@ import React from 'react';
 import { useAppContext } from '../../AppContext';
 import adminLoginBg from '../../assets/petugas-bg.jpg';
 
-const LoginAdmin = () => {
-    const { navigateTo, loginAdmin } = useAppContext();
+const RegisterAdmin = () => {
+    const { navigateTo } = useAppContext();
 
-    const handleLogin = (e) => {
+    const handleRegister = (e) => {
         e.preventDefault();
-        console.log('Admin login attempt');
-        loginAdmin({ name: 'Petugas 01', role: 'admin' });
+        console.log('Admin registration attempt');
+        alert('Pendaftaran Admin Berhasil! Silakan masuk.');
+        navigateTo('loginAdmin');
     };
 
     return (
         <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
             <div className="w-full max-w-4xl flex bg-white rounded-3xl shadow-2xl overflow-hidden">
                 {/* Kolom Formulir (Kiri) */}
-                <div className="w-full md:w-7/12 flex flex-col justify-center p-8 md:p-12">
+                <div className="w-full md:w-7/12 flex flex-col justify-center p-8 md:p-12 overflow-y-auto">
                     <div className="w-full max-w-sm mx-auto">
                         <div className="flex items-center gap-3 mb-4 cursor-pointer" onClick={() => navigateTo('landingPage')}>
                             <div className="bg-teal-500 p-2 rounded-lg">
@@ -24,31 +25,28 @@ const LoginAdmin = () => {
                             <h1 className="text-xl font-extrabold text-slate-800 tracking-tight">DWEP Anambas</h1>
                         </div>
 
-                        <h2 className="text-3xl font-bold text-slate-800 mb-2">Selamat Datang Petugas!</h2>
-                        <p className="text-slate-500 mb-8">Masuk ke dashboard untuk mengelola bank sampah.</p>
+                        <h2 className="text-3xl font-bold text-slate-800 mb-2">Buat Akun Petugas</h2>
+                        <p className="text-slate-500 mb-8">Daftarkan diri Anda untuk mengelola sistem.</p>
                         
-                        <form onSubmit={handleLogin}>
+                        <form onSubmit={handleRegister}>
                             <div className="mb-4">
-                                <label htmlFor="login-email" className="block text-sm font-medium text-slate-600 mb-1">Email</label>
-                                <input type="email" id="login-email" placeholder="contoh@email.com" className="w-full px-4 py-3 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500" required />
+                                <label htmlFor="register-name" className="block text-sm font-medium text-slate-600 mb-1">Nama Lengkap</label>
+                                <input type="text" id="register-name" placeholder="Nama Lengkap Anda" className="w-full px-4 py-3 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500" required />
+                            </div>
+                            <div className="mb-4">
+                                <label htmlFor="register-email" className="block text-sm font-medium text-slate-600 mb-1">Email</label>
+                                <input type="email" id="register-email" placeholder="contoh@email.com" className="w-full px-4 py-3 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500" required />
                             </div>
                             <div className="mb-6">
-                                <div className="flex justify-between items-center mb-1">
-                                    <label htmlFor="login-password" className="block text-sm font-medium text-slate-600">Password</label>
-                                    <a href="#" className="text-sm font-semibold text-teal-600 hover:underline">Lupa Password?</a>
-                                </div>
-                                <input type="password" id="login-password" placeholder="********" className="w-full px-4 py-3 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500" required />
+                                <label htmlFor="register-password" className="block text-sm font-medium text-slate-600 mb-1">Password</label>
+                                <input type="password" id="register-password" placeholder="Minimal 8 karakter" className="w-full px-4 py-3 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500" required />
                             </div>
                             <button type="submit" className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-4 rounded-lg transition-all shadow-md shadow-slate-800/30 hover:shadow-lg">
-                                Masuk ke Dashboard
+                                Daftar Akun
                             </button>
                         </form>
                          <p className="text-center text-sm text-slate-500 mt-8">
-                            Tidak punya akun? <a href="#" onClick={(e) => {e.preventDefault(); navigateTo('registerAdmin')}} className="font-semibold text-teal-600 hover:underline">Daftar di sini</a>
-                        </p>
-                        {/* PERBAIKAN: Menambahkan tombol kembali ke landing page */}
-                         <p className="text-center text-sm text-slate-500 mt-4">
-                            Bukan admin? <a href="#" onClick={(e) => {e.preventDefault(); navigateTo('landingPage')}} className="font-semibold text-slate-600 hover:underline">Kembali ke Halaman Utama</a>
+                            Sudah punya akun? <a href="#" onClick={(e) => {e.preventDefault(); navigateTo('loginAdmin')}} className="font-semibold text-teal-600 hover:underline">Masuk di sini</a>
                         </p>
                     </div>
                 </div>
@@ -66,5 +64,4 @@ const LoginAdmin = () => {
         </div>
     );
 };
-
-export default LoginAdmin;
+export default RegisterAdmin;

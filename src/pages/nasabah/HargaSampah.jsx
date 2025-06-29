@@ -12,14 +12,14 @@ const HargaSampah = () => {
     useEffect(() => {
         // Simulasi mengambil data dari database saat komponen dimuat
         const data = [
-            { id: 'PET01', name: 'Botol Plastik PET', category: 'Plastik', price: 3000, unit: 'Kg' },
-            { id: 'KRD01', name: 'Kardus Bersih', category: 'Kertas', price: 1500, unit: 'Kg' },
-            { id: 'ALM01', name: 'Kaleng Aluminium', category: 'Logam', price: 8000, unit: 'Kg' },
-            { id: 'KCB01', name: 'Botol Kaca Bening', category: 'Kaca', price: 500, unit: 'Kg' },
-            { id: 'BST01', name: 'Besi Tua', category: 'Logam', price: 2500, unit: 'Kg' },
-            { id: 'HDPE01', name: 'Plastik HDPE (Botol Shampo)', category: 'Plastik', price: 2000, unit: 'Kg' },
-            { id: 'KOR01', name: 'Koran Bekas', category: 'Kertas', price: 1200, unit: 'Kg' },
-        ];
+            { id: 'GH01',  name: 'Ghost Net', category: 'Jaring', price: 3000, unit: 'Kg', status: 'Aktif' },
+            { id: 'KRD01', name: 'Kardus Bersih', category: 'Kertas', price: 1500, unit: 'Kg', status: 'Aktif' },
+            { id: 'ALM01', name: 'Kaleng Aluminium', category: 'Logam', price: 8000, unit: 'Kg', status: 'Aktif' },
+            { id: 'KCB01', name: 'Botol Kaca Bening', category: 'Kaca', price: 500, unit: 'Kg', status: 'Tidak Aktif' },
+            { id: 'BST01', name: 'Besi Tua', category: 'Logam', price: 2500, unit: 'Kg', status: 'Aktif' },
+            { id: 'HDPE01', name: 'Plastik HDPE (Botol Shampo)', category: 'Plastik', price: 2000, unit: 'Kg', status: 'Aktif' },
+            { id: 'KOR01', name: 'Koran Bekas', category: 'Kertas', price: 1200, unit: 'Kg', status: 'Aktif' },
+                ];
         setWasteData(data);
         setFilteredData(data);
     }, []);

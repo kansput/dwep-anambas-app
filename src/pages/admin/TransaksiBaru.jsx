@@ -24,8 +24,13 @@ const TransaksiBaru = () => {
             { id: 'BST01', name: 'Besi Tua', price: 2500 }
         ]);
         setMockCustomerData([
-            { id: 'N-001', name: 'Ibu Siti', avatar: 'S' },
-            { id: 'N-007', name: 'Bapak Budi', avatar: 'B' }
+            { id: 'N-001', name: 'Siti Aminah', avatar: 'S', contact: '0812-3456-7890', address: 'Dusun Pesisir', joinDate: '01 Jan 2024', balance: 125500, totalWasteKg: 25.5 },
+            { id: 'N-007', name: 'Budi Santoso', avatar: 'B', contact: '0856-1122-3344', address: 'Dusun Bahari', joinDate: '15 Feb 2024', balance: 78000, totalWasteKg: 15.8 },
+            { id: 'N-012', name: 'Wati Lestari', avatar: 'W', contact: '0877-5566-7788', address: 'Dusun Lestari', joinDate: '03 Mar 2024', balance: 210000, totalWasteKg: 45.2 },
+            { id: 'N-015', name: 'Ahmad Maulana', avatar: 'A', contact: '0811-9988-7766', address: 'Dusun Pesisir', joinDate: '20 Apr 2024', balance: 55000, totalWasteKg: 11.0 },
+            { id: 'N-021', name: 'Dewi Anggraini', avatar: 'D', contact: '0813-1234-5678', address: 'Kampung Baru', joinDate: '05 Mei 2024', balance: 340000, totalWasteKg: 78.1 },
+            { id: 'N-022', name: 'Eko Prasetyo', avatar: 'E', contact: '0815-8765-4321', address: 'Dusun Bahari', joinDate: '11 Mei 2024', balance: 15000, totalWasteKg: 3.5 },
+            { id: 'N-028', name: 'Linda Wati', avatar: 'L', contact: '0899-1111-2222', address: 'Dusun Lestari', joinDate: '02 Jun 2024', balance: 95500, totalWasteKg: 22.0 },
         ]);
         // Menambahkan satu baris item kosong saat halaman dimuat
         setWasteItems([{ wasteId: '', weight: 0, subtotal: 0, key: Math.random() }]);

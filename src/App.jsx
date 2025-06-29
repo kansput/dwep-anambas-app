@@ -1,7 +1,18 @@
 import React from 'react';
 import { useAppContext } from './AppContext';
 
-// Import Admin Pages
+// Import semua halaman yang kita punya
+import LandingPage from './pages/LandingPage';
+import LoginAdmin from './pages/auth/LoginAdmin';
+import RegisterAdmin from './pages/auth/RegisterAdmin';
+import LoginNasabah from './pages/auth/LoginNasabah';
+import RegisterNasabah from './pages/nasabah/RegisterNasabah';
+import SaldoNasabah from './pages/nasabah/SaldoNasabah';
+import HargaSampah from './pages/nasabah/HargaSampah';
+import JadwalOperasional from './pages/nasabah/JadwalOperasional';
+import LokasiBankSampah from './pages/nasabah/LokasiBankSampah';
+import TarikSaldo from './pages/nasabah/TarikSaldo';
+import AdminLayout from './components/admin/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 import Laporan from './pages/admin/Laporan';
 import ManajemenNasabah from './pages/admin/ManajemenNasabah';
@@ -9,48 +20,35 @@ import ManajemenSampah from './pages/admin/ManajemenSampah';
 import PengaturanAkun from './pages/admin/PengaturanAkun';
 import PenjualanPengepul from './pages/admin/PenjualanPengepul';
 import TransaksiBaru from './pages/admin/TransaksiBaru';
-import AdminLayout from './components/admin/AdminLayout';
-
-// Import Auth Page
-import LoginAdmin from './pages/auth/LoginAdmin';
-
-// Import Nasabah Pages
-import SaldoNasabah from './pages/nasabah/SaldoNasabah';
-import HargaSampah from './pages/nasabah/HargaSampah';
-import JadwalOperasional from './pages/nasabah/JadwalOperasional';
-import LokasiBankSampah from './pages/nasabah/LokasiBankSampah';
-
 
 function App() {
   const { currentPage, adminUser, nasabahUser } = useAppContext();
 
-  // Jika tidak ada user admin DAN tidak ada user nasabah, tampilkan halaman login
+  // Jika tidak ada user yang login (baik admin maupun nasabah)
   if (!adminUser && !nasabahUser) {
-    return <LoginAdmin />;
-  }
-
-  // Jika ada user nasabah, tampilkan halaman nasabah
-  if (nasabahUser) {
-    let NasabahPageComponent;
     switch (currentPage) {
-        case 'hargaSampah':
-            NasabahPageComponent = HargaSampah;
-            break;
-        case 'jadwalOperasional':
-            NasabahPageComponent = JadwalOperasional;
-            break;
-        case 'lokasiBankSampah':
-            NasabahPageComponent = LokasiBankSampah;
-            break;
-        case 'saldoNasabah':
-        default:
-            NasabahPageComponent = SaldoNasabah;
-            break;
+      case 'loginAdmin': return <LoginAdmin />;
+      case 'registerAdmin': return <RegisterAdmin />;
+      case 'loginNasabah': return <LoginNasabah />;
+      case 'registerNasabah': return <RegisterNasabah />;
+      case 'landingPage':
+      default: return <LandingPage />;
     }
-    return <NasabahPageComponent />;
   }
 
-  // Jika ada user admin, tampilkan layout admin
+  // Jika yang login adalah nasabah
+  if (nasabahUser) {
+    switch (currentPage) {
+        case 'hargaSampah': return <HargaSampah />;
+        case 'jadwalOperasional': return <JadwalOperasional />;
+        case 'lokasiBankSampah': return <LokasiBankSampah />;
+        case 'tarikSaldo': return <TarikSaldo />;
+        case 'saldoNasabah':
+        default: return <SaldoNasabah />;
+    }
+  }
+
+  // Jika yang login adalah admin
   if (adminUser) {
     let AdminPageComponent;
     switch (currentPage) {
@@ -65,5 +63,9 @@ function App() {
     }
     return <AdminLayout><AdminPageComponent /></AdminLayout>;
   }
+  
+  // Sebagai fallback jika terjadi kondisi aneh, kembali ke landing page
+  return <LandingPage />;
 }
+
 export default App;

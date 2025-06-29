@@ -51,7 +51,8 @@ const SaldoNasabah = () => {
                             <p className="opacity-80">Total Sampah Terkumpul</p>
                             <p className="font-bold">25.5 Kg</p>
                         </div>
-                        <button className="bg-white/20 hover:bg-white/30 transition-all font-semibold py-2 px-4 rounded-full text-xs">
+                        {/* PERBAIKAN: Tombol ini sekarang bisa diklik */}
+                        <button onClick={() => navigateTo('tarikSaldo')} className="bg-white/20 hover:bg-white/30 transition-all font-semibold py-2 px-4 rounded-full text-xs">
                             Tarik Saldo
                         </button>
                     </div>

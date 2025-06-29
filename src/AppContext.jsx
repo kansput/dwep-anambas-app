@@ -3,9 +3,9 @@ import React, { createContext, useState, useContext } from 'react';
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [currentPage, setCurrentPage] = useState('dashboard'); 
-  const [adminUser, setAdminUser] = useState(null); // Mulai dengan admin belum login
-  const [nasabahUser, setNasabahUser] = useState(null); // State baru untuk nasabah
+  const [currentPage, setCurrentPage] = useState('landingPage'); 
+  const [adminUser, setAdminUser] = useState(null);
+  const [nasabahUser, setNasabahUser] = useState(null);
 
   const navigateTo = (page) => {
     setCurrentPage(page);
@@ -13,20 +13,20 @@ export const AppProvider = ({ children }) => {
   
   const loginAdmin = (userData) => {
       setAdminUser(userData);
-      setNasabahUser(null); // Pastikan nasabah user kosong
+      setNasabahUser(null);
       navigateTo('dashboard');
   }
 
   const loginNasabah = (nasabahData) => {
       setNasabahUser(nasabahData);
-      setAdminUser(null); // Pastikan admin user kosong
-      navigateTo('saldoNasabah'); // Langsung ke halaman saldo setelah login
+      setAdminUser(null);
+      navigateTo('saldoNasabah');
   }
 
   const logout = () => {
       setAdminUser(null);
       setNasabahUser(null);
-      navigateTo('loginAdmin');
+      navigateTo('landingPage');
   }
 
   const value = { currentPage, navigateTo, adminUser, nasabahUser, loginAdmin, loginNasabah, logout };

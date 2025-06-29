@@ -1,53 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { mockWasteTypes } from '../../data/mockDatabase'; // Impor data sampah dari file pusat
+import { mockWasteTypes } from '../../data/mockDatabase';
 
-// Komponen ManajemenSampah.jsx
 const ManajemenSampah = () => {
-    // State untuk mengontrol visibilitas modal
     const [isModalOpen, setIsModalOpen] = useState(false);
-    // State untuk menentukan mode modal (tambah/edit)
     const [modalMode, setModalMode] = useState('add');
-    // State untuk menyimpan data sampah yang akan diedit
     const [selectedWaste, setSelectedWaste] = useState(null);
-
-    // Sekarang kita menggunakan data dari mockDatabase
     const [wasteData, setWasteData] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Memuat data saat komponen pertama kali render
     useEffect(() => {
         setWasteData(mockWasteTypes);
     }, []);
 
-    // Fungsi untuk memfilter data berdasarkan pencarian
     const filteredWasteData = wasteData.filter(waste =>
         waste.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Fungsi untuk membuka modal dalam mode 'tambah'
     const handleOpenAddModal = () => {
         setModalMode('add');
         setSelectedWaste(null);
         setIsModalOpen(true);
     };
 
-    // Fungsi untuk membuka modal dalam mode 'edit'
     const handleOpenEditModal = (waste) => {
         setModalMode('edit');
         setSelectedWaste(waste);
         setIsModalOpen(true);
     };
 
-    // Fungsi untuk menutup modal
     const handleCloseModal = () => {
         setIsModalOpen(false);
     };
 
-    // Fungsi untuk menangani submit form
     const handleFormSubmit = (e) => {
         e.preventDefault();
-        // Logika untuk menyimpan data akan ditambahkan di sini
-        // Untuk demo, kita hanya akan menampilkannya di console
         console.log('Form data sampah disubmit!');
         handleCloseModal();
     };
@@ -55,22 +41,13 @@ const ManajemenSampah = () => {
     return (
         <>
             <div className="p-6 md:p-8">
-                {/* Header */}
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
                     <div>
                         <h2 className="text-3xl font-bold text-slate-800">Manajemen Data Sampah</h2>
                         <p className="text-slate-500">Kelola jenis, kategori, dan harga sampah yang diterima.</p>
                     </div>
-                    <div className="flex items-center gap-3 mt-4 md:mt-0">
-                        <img src="https://placehold.co/40x40/e2e8f0/475569?text=P" alt="Avatar Petugas" className="rounded-full" />
-                        <div>
-                            <p className="font-semibold text-slate-800">Petugas 01</p>
-                            <p className="text-xs text-slate-500">Admin</p>
-                        </div>
-                    </div>
+                  
                 </header>
-
-                {/* Action Bar and Table */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                     <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
                         <div className="relative w-full md:w-1/3">
@@ -88,8 +65,6 @@ const ManajemenSampah = () => {
                             Tambah Sampah Baru
                         </button>
                     </div>
-
-                    {/* Table */}
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-slate-500 uppercase bg-slate-50">
@@ -120,12 +95,8 @@ const ManajemenSampah = () => {
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex items-center justify-center gap-4">
-                                                <button onClick={() => handleOpenEditModal(waste)} className="p-2 hover:bg-slate-200 rounded-full" title="Edit">
-                                                    <svg className="w-5 h-5 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z"></path></svg>
-                                                </button>
-                                                <button className="p-2 hover:bg-slate-200 rounded-full" title="Hapus">
-                                                    <svg className="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                                </button>
+                                                <button onClick={() => handleOpenEditModal(waste)} className="p-2 hover:bg-slate-200 rounded-full" title="Edit"><svg className="w-5 h-5 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z"></path></svg></button>
+                                                <button className="p-2 hover:bg-slate-200 rounded-full" title="Hapus"><svg className="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -135,14 +106,10 @@ const ManajemenSampah = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Modal for Add/Edit Waste */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
                     <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-lg">
-                        <h3 className="text-2xl font-bold text-slate-800 mb-6">
-                             {modalMode === 'add' ? 'Tambah Sampah Baru' : 'Edit Data Sampah'}
-                        </h3>
+                        <h3 className="text-2xl font-bold text-slate-800 mb-6">{modalMode === 'add' ? 'Tambah Sampah Baru' : 'Edit Data Sampah'}</h3>
                         <form onSubmit={handleFormSubmit}>
                             <div className="mb-4">
                                 <label htmlFor="nama-sampah" className="block mb-2 text-sm font-medium text-slate-600">Nama Sampah</label>
@@ -151,11 +118,7 @@ const ManajemenSampah = () => {
                             <div className="mb-4">
                                 <label htmlFor="kategori-sampah" className="block mb-2 text-sm font-medium text-slate-600">Kategori</label>
                                 <select id="kategori-sampah" defaultValue={selectedWaste ? selectedWaste.category : 'Plastik'} className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500">
-                                    <option>Plastik</option>
-                                    <option>Kertas</option>
-                                    <option>Logam</option>
-                                    <option>Kaca</option>
-                                    <option>Lainnya</option>
+                                    <option>Plastik</option><option>Kertas</option><option>Logam</option><option>Kaca</option><option>Lainnya</option>
                                 </select>
                             </div>
                             <div className="grid grid-cols-2 gap-4 mb-4">
@@ -166,9 +129,7 @@ const ManajemenSampah = () => {
                                  <div>
                                     <label htmlFor="satuan-sampah" className="block mb-2 text-sm font-medium text-slate-600">Satuan</label>
                                     <select id="satuan-sampah" defaultValue={selectedWaste ? selectedWaste.unit : 'Kg'} className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500">
-                                        <option>Kg</option>
-                                        <option>Pcs</option>
-                                        <option>Ikat</option>
+                                        <option>Kg</option><option>Pcs</option><option>Ikat</option>
                                     </select>
                                 </div>
                             </div>
@@ -190,5 +151,4 @@ const ManajemenSampah = () => {
         </>
     );
 };
-
 export default ManajemenSampah;
