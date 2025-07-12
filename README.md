@@ -1,12 +1,33 @@
-# React + Vite
+# DWEP Anambas App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Digital Waste Ecosystem Platform (DWeP)** adalah aplikasi berbasis cloud yang dikembangkan untuk mendukung edukasi dan insentif pengelolaan sampah di wilayah Anambas. Aplikasi ini dikembangkan sebagai bagian dari **Program BISA 2025** (kolaborasi Anambas Foundation & Parongpong RAW LAB) oleh **Synergy Group 1**.
 
-Currently, two official plugins are available:
+## 🚀 Fitur Utama
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Dashboard Interaktif**  
+  Menampilkan statistik pengelolaan sampah secara real-time, terkoneksi lewat API backend.
 
-## Expanding the ESLint configuration
+- **Grafik & Visualisasi**  
+  Data volume sampah, partisipasi komunitas, dan progress insentif dalam bentuk chart.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Manajemen Data**  
+  Admin dapat menambah, mengedit, dan menghapus data sampah dan pengguna.
+
+- **Autentikasi Pengguna**  
+  Login & akses role-based (admin, user).
+
+## 🧩 Teknologi
+
+- **Frontend:** React.js  
+- **Backend:** Node.js / Express (atau sebutkan stack backendmu)  
+- **Database:** MongoDB / PostgreSQL (sesuaikan)  
+- **Cloud & Deployment:** (misalnya: Google Cloud Run, Heroku, dll)  
+- **Integrasi:** Chart.js untuk grafik, RESTful API untuk koneksi data
+
+## 🔧 Instalasi & Penggunaan
+
+1. Clone repo:  
+   ```bash
+   git clone https://github.com/kansput/dwep-anambas-app.git
+   cd dwep-anambas-app
+
