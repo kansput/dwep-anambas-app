@@ -39,10 +39,10 @@ const LandingPage = () => {
                         <h1 className="text-xl font-extrabold text-slate-800 tracking-tight">DWEP Anambas</h1>
                     </div>
                     <div className="hidden md:flex items-center gap-4">
-                        <button onClick={() => navigateTo('registerNasabah')} className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-5 rounded-full transition-all">
-                            Daftar Nasabah
+                        <button onClick={() => navigateTo('loginNasabah')} className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-5 rounded-full transition-all">
+                            Login Nasabah
                         </button>
-                        <button onClick={() => navigateTo('loginAdmin')} className="bg-slate-700 hover:bg-slate-800 text-white font-semibold py-2 px-5 rounded-full transition-all">
+                        <button onClick={() => navigateTo('loginPetugas')} className="bg-slate-700 hover:bg-slate-800 text-white font-semibold py-2 px-5 rounded-full transition-all">
                             Login Petugas
                         </button>
                     </div>
@@ -174,7 +174,7 @@ const LandingPage = () => {
                                <li><a href="#cara-kerja" className="hover:text-teal-400">Cara Kerja</a></li>
                                <li><a href="#manfaat" className="hover:text-teal-400">Manfaat</a></li>
                                <li><a href="#" onClick={() => navigateTo('loginNasabah')} className="hover:text-teal-400">Login Nasabah</a></li>
-                               <li><a href="#" onClick={() => navigateTo('loginAdmin')} className="hover:text-teal-400">Login Petugas</a></li>
+                               <li><a href="#" onClick={() => navigateTo('loginPetugas')} className="hover:text-teal-400">Login Petugas</a></li>
                            </ul>
                        </div>
                         <div>

@@ -1,140 +1,214 @@
-import React, { useState, useEffect } from 'react';
-import { mockCustomers } from '../../data/mockDatabase'; // Impor data nasabah dari file pusat
+import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../../config/api";
+import { useAppContext } from "../../AppContext";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// Komponen tombol dengan style Tailwind
+const Button = ({ onClick, children, color, disabled }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    className={`px-4 py-2 rounded-md text-white font-semibold text-sm transition-colors duration-200 ${color} ${
+      disabled ? "opacity-50 cursor-not-allowed" : "hover:brightness-90"
+    }`}
+  >
+    {children}
+  </button>
+);
 
 const ManajemenNasabah = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalMode, setModalMode] = useState('add');
-    const [selectedCustomer, setSelectedCustomer] = useState(null);
-    
-    // State untuk menyimpan data nasabah dan kata kunci pencarian
-    const [customers, setCustomers] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
+  const { token } = useAppContext();
+  const [nasabah, setNasabah] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(new Set());
+  const [search, setSearch] = useState("");
 
-    // Memuat data saat komponen pertama kali render
-    useEffect(() => {
-        setCustomers(mockCustomers);
-    }, []);
-
-    // Logika untuk memfilter nasabah berdasarkan pencarian
-    const filteredCustomers = customers.filter(customer =>
-        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.id.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const handleOpenAddModal = () => {
-        setModalMode('add');
-        setSelectedCustomer(null);
-        setIsModalOpen(true);
+  // Ambil data nasabah dari API
+  useEffect(() => {
+    const fetchNasabah = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/users/nasabah`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setNasabah(data.users || []);
+        } else {
+          toast.error(data.message || "Gagal memuat data nasabah");
+        }
+      } catch {
+        toast.error("Tidak bisa menghubungi server");
+      } finally {
+        setLoading(false);
+      }
     };
+    fetchNasabah();
+  }, [token]);
 
-    const handleOpenEditModal = (customer) => {
-        setModalMode('edit');
-        setSelectedCustomer(customer);
-        setIsModalOpen(true);
-    };
+  // Fungsi mengubah status nasabah
+  const updateStatus = async (uid, status) => {
+    if (!uid) return toast.error("ID nasabah tidak valid");
+    setProcessing((prev) => new Set([...prev, uid]));
+    try {
+      const res = await fetch(`${API_BASE_URL}/users/${uid}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(`Status nasabah diperbarui: ${status}`);
+        const resNew = await fetch(`${API_BASE_URL}/users/nasabah`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const dataNew = await resNew.json();
+        if (resNew.ok) setNasabah(dataNew.users || []);
+      } else {
+        toast.error(data.message || "Gagal update status");
+      }
+    } catch {
+      toast.error("Terjadi kesalahan saat update status");
+    } finally {
+      setProcessing((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(uid);
+        return newSet;
+      });
+    }
+  };
 
-    const handleCloseModal = () => setIsModalOpen(false);
+  // 🔹 Group data nasabah berdasarkan bank sampah
+  const groupedNasabah = nasabah.reduce((acc, cur) => {
+    let bank = cur.bankSampah || "Lainnya";
+    // Rapikan tampilan nama bank: underscore -> spasi, kapital awal
+    bank = bank
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
 
-    const handleFormSubmit = (e) => {
-        e.preventDefault();
-        console.log('Form nasabah disubmit!');
-        handleCloseModal();
-    };
+    if (!acc[bank]) acc[bank] = [];
+    acc[bank].push(cur);
+    return acc;
+  }, {});
 
+  // 🔹 Filter nasabah berdasarkan pencarian
+  const filteredGroupedNasabah = Object.keys(groupedNasabah).reduce(
+    (acc, bank) => {
+      const filtered = groupedNasabah[bank].filter((n) =>
+        n.name.toLowerCase().includes(search.toLowerCase())
+      );
+      if (filtered.length > 0) acc[bank] = filtered;
+      return acc;
+    },
+    {}
+  );
+
+  if (loading)
     return (
-        <>
-            <div className="p-6 md:p-8">
-                <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-                    <div>
-                        <h2 className="text-3xl font-bold text-slate-800">Manajemen Data Nasabah</h2>
-                        <p className="text-slate-500">Kelola informasi, saldo, dan riwayat nasabah.</p>
-                    </div>
-                    
-                </header>
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
-                        <div className="relative w-full md:w-1/3">
-                            <input 
-                                type="text" 
-                                placeholder="Cari nama atau ID nasabah..." 
-                                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            <svg className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path></svg>
-                        </div>
-                        <button onClick={handleOpenAddModal} className="w-full md:w-auto flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 11a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1v-1z" /></svg>
-                            Tambah Nasabah Baru
-                        </button>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="text-xs text-slate-500 uppercase bg-slate-50">
-                                <tr>
-                                    <th scope="col" className="px-6 py-3 rounded-l-lg">Nama Nasabah</th>
-                                    <th scope="col" className="px-6 py-3">Kontak</th>
-                                    <th scope="col" className="px-6 py-3">Saldo</th>
-                                    <th scope="col" className="px-6 py-3">Bergabung Sejak</th>
-                                    <th scope="col" className="px-6 py-3 text-center rounded-r-lg">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredCustomers.map((customer) => (
-                                    <tr key={customer.id} className="border-b border-slate-200 hover:bg-slate-50">
-                                        <td className="px-6 py-4">
-                                            <div className="font-semibold text-slate-800">{customer.name}</div>
-                                            <div className="text-xs text-slate-500">ID: {customer.id}</div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div>{customer.address}</div>
-                                            <div className="text-xs text-slate-500">{customer.contact}</div>
-                                        </td>
-                                        <td className="px-6 py-4 font-semibold text-teal-600">
-                                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(customer.balance)}
-                                        </td>
-                                        <td className="px-6 py-4">{customer.joinDate}</td>
-                                        <td className="px-6 py-4 text-center">
-                                            <div className="flex items-center justify-center gap-2">
-                                                <button className="p-2 hover:bg-slate-200 rounded-full" title="Lihat Detail"><svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
-                                                <button onClick={() => handleOpenEditModal(customer)} className="p-2 hover:bg-slate-200 rounded-full" title="Edit"><svg className="w-5 h-5 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z"></path></svg></button>
-                                                <button className="p-2 hover:bg-slate-200 rounded-full" title="Hapus"><svg className="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            {isModalOpen && (
-                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-                    <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-lg">
-                        <h3 className="text-2xl font-bold text-slate-800 mb-6">{modalMode === 'add' ? 'Tambah Nasabah Baru' : 'Edit Data Nasabah'}</h3>
-                        <form onSubmit={handleFormSubmit}>
-                            <div className="mb-4">
-                                <label htmlFor="nama-nasabah" className="block mb-2 text-sm font-medium text-slate-600">Nama Lengkap</label>
-                                <input type="text" id="nama-nasabah" defaultValue={selectedCustomer ? selectedCustomer.name : ''} className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500" required />
-                            </div>
-                             <div className="mb-4">
-                                <label htmlFor="no-hp" className="block mb-2 text-sm font-medium text-slate-600">Nomor HP (Opsional)</label>
-                                <input type="tel" id="no-hp" defaultValue={selectedCustomer ? selectedCustomer.contact : ''} placeholder="0812..." className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500" />
-                            </div>
-                             <div className="mb-6">
-                                <label htmlFor="alamat-nasabah" className="block mb-2 text-sm font-medium text-slate-600">Alamat / Dusun</label>
-                                <textarea id="alamat-nasabah" rows="3" defaultValue={selectedCustomer ? selectedCustomer.address : ''} className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500" required></textarea>
-                            </div>
-                             <div className="flex justify-end gap-4">
-                                <button type="button" onClick={handleCloseModal} className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-lg transition-all">Batal</button>
-                                <button type="submit" className="px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-lg transition-all">Simpan</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-        </>
+      <div className="p-10 text-center text-gray-600 text-xl">
+        Memuat data nasabah...
+      </div>
     );
+
+  if (nasabah.length === 0)
+    return (
+      <div className="p-10 text-center text-gray-600 text-xl">
+        Belum ada nasabah terdaftar.
+      </div>
+    );
+
+  return (
+    <div className="max-w-5xl mx-auto p-6 bg-gray-100 min-h-[80vh] font-sans">
+      {/* Pencarian */}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Cari nama nasabah..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      {Object.entries(filteredGroupedNasabah).map(([bankName, nasabahList]) => (
+        <section
+          key={bankName}
+          className="mb-8 bg-white rounded-xl shadow-lg p-6"
+        >
+          <h2 className="text-2xl font-bold text-blue-600 border-b-2 border-blue-600 pb-2 mb-4">
+            Bank Sampah: {bankName} ({nasabahList.length} Nasabah)
+          </h2>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-gray-700">
+              <thead>
+                <tr className="bg-blue-50">
+                  <th className="p-4 border-b-2 border-gray-200 w-16">No</th>
+                  <th className="p-4 border-b-2 border-gray-200">Nama</th>
+                  <th className="p-4 border-b-2 border-gray-200">Email</th>
+                  <th className="p-4 border-b-2 border-gray-200 text-center w-28">
+                    Status
+                  </th>
+                  <th className="p-4 border-b-2 border-gray-200 text-center w-48">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {nasabahList.map((n, idx) => (
+                  <tr
+                    key={n.id}
+                    className={`transition-colors duration-200 ${
+                      idx % 2 === 0 ? "bg-gray-50" : "bg-white"
+                    } hover:bg-blue-100`}
+                  >
+                    <td className="p-4">{idx + 1}</td>
+                    <td className="p-4">{n.name}</td>
+                    <td className="p-4">{n.email}</td>
+                    <td className="p-4 text-center">
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
+                          n.status === "active"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {n.status.charAt(0).toUpperCase() + n.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center space-x-2">
+                      {n.status !== "active" && (
+                        <Button
+                          color="bg-green-600"
+                          onClick={() => updateStatus(n.id, "active")}
+                          disabled={processing.has(n.id)}
+                        >
+                          Approve
+                        </Button>
+                      )}
+                      {n.status === "active" && (
+                        <Button
+                          color="bg-red-600"
+                          onClick={() => updateStatus(n.id, "suspend")}
+                          disabled={processing.has(n.id)}
+                        >
+                          Suspend
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ))}
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+    </div>
+  );
 };
 
 export default ManajemenNasabah;

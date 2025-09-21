@@ -1,18 +1,17 @@
 import React, { useState } from "react";
 import { useAppContext } from "../../AppContext";
 import API_BASE_URL from "../../config/api";
-import anambasImage from "../../assets/nasabah1.jpg";
+import petugasBg from "../../assets/petugas-bg.jpg";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const LoginNasabah = () => {
-  const { navigateTo, login } = useAppContext();
+const LoginPetugas = () => {
+  const { login, navigateTo } = useAppContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
 
@@ -24,16 +23,18 @@ const LoginNasabah = () => {
       });
 
       const data = await res.json();
+
       if (res.ok) {
-        // ✅ fix: ambil role dari data.user.role, bukan data.role
         login(data.accessToken, data.user.role, data.user);
-        toast.success("✅ Login sukses!");
+        toast.success(`✅ Login sukses sebagai ${data.user.role}!`);
       } else {
         toast.error(data.message || "Login gagal");
       }
     } catch (err) {
       console.error("Login error:", err);
-      toast.error("Terjadi kesalahan saat login");
+      toast.error(
+        "Tidak bisa terhubung ke server. Cek API_BASE_URL & server backend."
+      );
     } finally {
       setLoading(false);
     }
@@ -42,22 +43,8 @@ const LoginNasabah = () => {
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className="w-full max-w-5xl flex bg-white rounded-3xl shadow-2xl overflow-hidden">
-        {/* Kolom Gambar */}
-        <div className="hidden lg:block w-5/12 relative">
-          <img
-            src={anambasImage}
-            alt="Komunitas Peduli Lingkungan Anambas"
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src =
-                "https://placehold.co/800x1000/dbf4ff/10b981?text=DWEP+Anambas";
-            }}
-          />
-        </div>
-
-        {/* Kolom Form */}
+      <div className="w-full max-w-4xl flex bg-white rounded-3xl shadow-2xl overflow-hidden">
+        {/* Kolom Formulir */}
         <div className="w-full md:w-7/12 flex flex-col justify-center p-8 md:p-12">
           <div className="w-full max-w-sm mx-auto">
             {/* 🔹 Logo + nama aplikasi */}
@@ -88,18 +75,18 @@ const LoginNasabah = () => {
 
             {/* 🔹 Judul halaman */}
             <h2 className="text-3xl font-bold text-slate-800 mb-2">
-              Login Nasabah
+              Login Petugas
             </h2>
             <p className="text-slate-500 mb-8">
               Masuk ke sistem menggunakan akun Anda.
             </p>
 
             {/* 🔹 Form login */}
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
+            <form onSubmit={handleLogin}>
+              <div className="mb-4">
                 <label
                   htmlFor="email"
-                  className="block text-sm font-semibold mb-2"
+                  className="block text-sm font-medium text-slate-600 mb-1"
                 >
                   Email
                 </label>
@@ -108,41 +95,34 @@ const LoginNasabah = () => {
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  placeholder="contoh@email.com"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                   required
-                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
-              <div>
+              <div className="mb-6">
                 <label
                   htmlFor="password"
-                  className="block text-sm font-semibold mb-2"
+                  className="block text-sm font-medium text-slate-600 mb-1"
                 >
                   Password
                 </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400"
-                  >
-                    {showPassword ? "🙈" : "👁️"}
-                  </button>
-                </div>
+                <input
+                  type="password"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Masukkan password"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  required
+                />
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-teal-500 to-emerald-600 text-white font-bold py-3 px-6 rounded-xl"
+                className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-4 rounded-lg transition-all shadow-md shadow-slate-800/30 hover:shadow-lg"
               >
                 {loading ? "Memproses..." : "Masuk"}
               </button>
@@ -155,7 +135,7 @@ const LoginNasabah = () => {
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  navigateTo("registerNasabah");
+                  navigateTo("registerPetugas");
                 }}
                 className="font-semibold text-teal-600 hover:underline"
               >
@@ -163,8 +143,8 @@ const LoginNasabah = () => {
               </a>
             </p>
 
-            {/* 🔹 Link kembali ke LandingPage */}
-            <p className="text-center text-sm text-slate-500 mt-2">
+            {/* 🔹 Direct link ke Landing Page */}
+            <p className="text-center text-sm text-slate-500 mt-4">
               <a
                 href="#"
                 onClick={(e) => {
@@ -173,14 +153,28 @@ const LoginNasabah = () => {
                 }}
                 className="font-semibold text-slate-600 hover:underline"
               >
-                ← Kembali ke menu utama
+                ← Kembali ke Menu Utama
               </a>
             </p>
           </div>
+        </div>
+
+        {/* Kolom Gambar */}
+        <div className="hidden md:block w-5/12">
+          <img
+            src={petugasBg}
+            alt="Ilustrasi DWEP Anambas"
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src =
+                "https://placehold.co/800x1000/0f172a/ffffff?text=DWEP+Petugas";
+            }}
+          />
         </div>
       </div>
     </div>
   );
 };
 
-export default LoginNasabah;
+export default LoginPetugas;

@@ -1,0 +1,33 @@
+# =====================================
+# BACKEND NODE & BUILD
+# =====================================
+node_modules/
+dist/
+build/
+coverage/
+
+# =====================================
+# ENV & KEYS
+# =====================================
+.env
+.env.local
+serviceAccountKey.json
+firebase-service-account.json
+*.pem
+*.key
+
+# =====================================
+# LOGS & TEMP
+# =====================================
+logs/
+*.log
+tmp/
+uploads/
+
+# =====================================
+# EDITOR & SYSTEM
+# =====================================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

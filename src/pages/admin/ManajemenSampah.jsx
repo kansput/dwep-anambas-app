@@ -1,154 +1,424 @@
-import React, { useState, useEffect } from 'react';
-import { mockWasteTypes } from '../../data/mockDatabase';
+import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../../config/api";
+import { useAppContext } from "../../AppContext";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// Komponen tombol aksi reusable
+const ActionButton = ({ onClick, children, color = "#007bff", title }) => (
+  <button
+    onClick={onClick}
+    title={title}
+    style={{
+      cursor: "pointer",
+      backgroundColor: color,
+      border: "none",
+      borderRadius: 4,
+      padding: "6px 12px",
+      color: "#fff",
+      margin: "0 4px",
+      fontWeight: "bold",
+      boxShadow: "0 2px 5px rgba(0,0,0,0.15)",
+      transition: "background-color 0.3s",
+    }}
+    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0056b3")}
+    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = color)}
+  >
+    {children}
+  </button>
+);
 
 const ManajemenSampah = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalMode, setModalMode] = useState('add');
-    const [selectedWaste, setSelectedWaste] = useState(null);
-    const [wasteData, setWasteData] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
+  const { token } = useAppContext();
+  const [sampah, setSampah] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [nama, setNama] = useState("");
+  const [harga, setHarga] = useState("");
+  const [editId, setEditId] = useState(null);
 
-    useEffect(() => {
-        setWasteData(mockWasteTypes);
-    }, []);
+  const [showHargaModal, setShowHargaModal] = useState(false);
+  const [selectedSampah, setSelectedSampah] = useState(null);
+  const [editHarga, setEditHarga] = useState({});
 
-    const filteredWasteData = wasteData.filter(waste =>
-        waste.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  // Ambil daftar harga bank sampah berdasarkan data
+  const hargaKeys = React.useMemo(() => {
+    if (sampah.length === 0) return [];
+    const firstItem = sampah[0];
+    if (firstItem.hargaPerBank) return Object.keys(firstItem.hargaPerBank);
+    if (firstItem.harga && typeof firstItem.harga === "object") return Object.keys(firstItem.harga);
+    if (firstItem.prices && typeof firstItem.prices === "object") return Object.keys(firstItem.prices);
+    return [];
+  }, [sampah]);
 
-    const handleOpenAddModal = () => {
-        setModalMode('add');
-        setSelectedWaste(null);
-        setIsModalOpen(true);
-    };
+  // Fetch sampah (tidak diubah dari asal)
+  const fetchSampah = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/sampah`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const list = Array.isArray(data) ? data : data.sampah || [];
+        setSampah(list);
+      } else {
+        toast.error(data.message || "Gagal memuat data sampah");
+      }
+    } catch (err) {
+      console.error("Error fetch sampah:", err);
+      toast.error("Tidak bisa menghubungi server");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleOpenEditModal = (waste) => {
-        setModalMode('edit');
-        setSelectedWaste(waste);
-        setIsModalOpen(true);
-    };
+  useEffect(() => {
+    fetchSampah();
+  }, []);
 
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-    };
+  // Handle form submit (tidak diubah)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!nama || !harga) return toast.error("Nama & Harga wajib diisi");
+    try {
+      const url = editId ? `${API_BASE_URL}/sampah/${editId}` : `${API_BASE_URL}/sampah`;
+      const method = editId ? "PATCH" : "POST";
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ nama, harga: Number(harga) }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(editId ? "Sampah diperbarui" : "Sampah ditambahkan");
+        setNama("");
+        setHarga("");
+        setEditId(null);
+        fetchSampah();
+      } else {
+        toast.error(data.message || "Gagal simpan data");
+      }
+    } catch (err) {
+      console.error("Error simpan sampah:", err);
+      toast.error("Terjadi kesalahan server");
+    }
+  };
 
-    const handleFormSubmit = (e) => {
-        e.preventDefault();
-        console.log('Form data sampah disubmit!');
-        handleCloseModal();
-    };
+  // Handle delete (tidak diubah)
+  const handleDelete = async (id) => {
+    if (!window.confirm("Yakin ingin menghapus data sampah ini?")) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/sampah/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Sampah dihapus");
+        fetchSampah();
+      } else {
+        toast.error(data.message || "Gagal hapus sampah");
+      }
+    } catch (err) {
+      console.error("Error hapus sampah:", err);
+      toast.error("Terjadi kesalahan saat hapus sampah");
+    }
+  };
 
-    return (
-        <>
-            <div className="p-6 md:p-8">
-                <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-                    <div>
-                        <h2 className="text-3xl font-bold text-slate-800">Manajemen Data Sampah</h2>
-                        <p className="text-slate-500">Kelola jenis, kategori, dan harga sampah yang diterima.</p>
-                    </div>
-                  
-                </header>
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
-                        <div className="relative w-full md:w-1/3">
-                            <input 
-                                type="text" 
-                                placeholder="Cari nama sampah..." 
-                                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            <svg className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path></svg>
-                        </div>
-                        <button onClick={handleOpenAddModal} className="w-full md:w-auto flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd"></path></svg>
-                            Tambah Sampah Baru
-                        </button>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="text-xs text-slate-500 uppercase bg-slate-50">
-                                <tr>
-                                    <th scope="col" className="px-6 py-3 rounded-l-lg">Nama Sampah</th>
-                                    <th scope="col" className="px-6 py-3">Kategori</th>
-                                    <th scope="col" className="px-6 py-3">Harga Beli</th>
-                                    <th scope="col" className="px-6 py-3 text-center">Status</th>
-                                    <th scope="col" className="px-6 py-3 text-center rounded-r-lg">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredWasteData.map((waste) => (
-                                    <tr key={waste.id} className="border-b border-slate-200 hover:bg-slate-50">
-                                        <td className="px-6 py-4 font-semibold text-slate-800">{waste.name}</td>
-                                        <td className="px-6 py-4">{waste.category}</td>
-                                        <td className="px-6 py-4">
-                                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(waste.price)} / {waste.unit}
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
-                                                waste.status === 'Aktif' 
-                                                ? 'bg-green-100 text-green-800' 
-                                                : 'bg-red-100 text-red-800'
-                                            }`}>
-                                                {waste.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <div className="flex items-center justify-center gap-4">
-                                                <button onClick={() => handleOpenEditModal(waste)} className="p-2 hover:bg-slate-200 rounded-full" title="Edit"><svg className="w-5 h-5 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z"></path></svg></button>
-                                                <button className="p-2 hover:bg-slate-200 rounded-full" title="Hapus"><svg className="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+  // Handle edit sampah, isi form tambah/edit
+  const handleEdit = (item) => {
+    setEditId(item.id || item.idSampah);
+    setNama(item.nama || item.namaSampah || "");
+    setHarga(item.harga || 0);
+  };
+
+  // Open modal edit harga per bank dengan state terisi
+  const openHargaModal = (item) => {
+    setSelectedSampah(item);
+    let hargaObj = {};
+    if (item.hargaPerBank) hargaObj = item.hargaPerBank;
+    else if (item.harga) hargaObj = item.harga;
+    else if (item.prices) hargaObj = item.prices;
+    setEditHarga(hargaObj || {});
+    setShowHargaModal(true);
+  };
+
+  // Simpan harga per bank hasil edit
+  const saveHarga = async () => {
+    if (!selectedSampah) return;
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/sampah/${selectedSampah.id || selectedSampah.idSampah}/harga`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ harga: editHarga }),
+        }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Harga per bank berhasil diperbarui");
+        setShowHargaModal(false);
+        setSelectedSampah(null);
+        fetchSampah();
+      } else {
+        toast.error(data.message || "Gagal update harga");
+      }
+    } catch (err) {
+      console.error("Error update harga:", err);
+      toast.error("Terjadi kesalahan server");
+    }
+  };
+
+  if (loading) return <div>Loading data sampah...</div>;
+
+  return (
+    <div style={{ maxWidth: 960, margin: "auto", padding: 20, fontFamily: "Arial, sans-serif" }}>
+      <h2>Manajemen Sampah</h2>
+
+      {/* Form tambah/edit */}
+      <form onSubmit={handleSubmit} style={{ marginBottom: 20 }}>
+        <input
+          placeholder="Nama Sampah"
+          value={nama}
+          onChange={(e) => setNama(e.target.value)}
+          style={{ padding: 8, fontSize: 16, width: 250, marginRight: 10, borderRadius: 4, border: "1px solid #ccc" }}
+        />
+        <input
+          type="number"
+          placeholder="Harga (Rp)"
+          value={harga}
+          onChange={(e) => setHarga(e.target.value)}
+          style={{ padding: 8, fontSize: 16, width: 150, marginRight: 10, borderRadius: 4, border: "1px solid #ccc" }}
+          min="0"
+        />
+        <button
+          type="submit"
+          style={{
+            padding: "8px 20px",
+            fontSize: 16,
+            backgroundColor: "#28a745",
+            color: "#fff",
+            borderRadius: 4,
+            border: "none",
+            cursor: "pointer",
+            fontWeight: "bold",
+            boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+            transition: "background-color 0.3s",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#218838")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#28a745")}
+        >
+          {editId ? "Update Sampah" : "Tambah Sampah"}
+        </button>
+        {editId && (
+          <button
+            type="button"
+            onClick={() => {
+              setEditId(null);
+              setNama("");
+              setHarga("");
+            }}
+            style={{
+              marginLeft: 10,
+              padding: "8px 20px",
+              fontSize: 16,
+              backgroundColor: "#6c757d",
+              color: "#fff",
+              borderRadius: 4,
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Batal
+          </button>
+        )}
+      </form>
+
+      {/* Tabel data sampah */}
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          marginBottom: 30,
+          fontSize: 16,
+          textAlign: "left",
+        }}
+      >
+        <thead>
+          <tr style={{ backgroundColor: "#007bff", color: "#fff" }}>
+            <th style={{ padding: "10px 8px", border: "1px solid #ddd" }}>ID Sampah</th>
+            <th style={{ padding: "10px 8px", border: "1px solid #ddd" }}>Nama Sampah</th>
+            {hargaKeys.map((key) => (
+              <th
+                key={key}
+                style={{ padding: "10px 8px", border: "1px solid #ddd", minWidth: 120 }}
+              >
+                Harga {key}
+              </th>
+            ))}
+            <th style={{ padding: "10px 8px", border: "1px solid #ddd" }}>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sampah.map((s) => (
+            <tr
+              key={s.idSampah || s.id}
+              style={{
+                borderBottom: "1px solid #ddd",
+                transition: "background-color 0.3s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f1f1f1")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+            >
+              <td style={{ padding: "8px", border: "1px solid #ddd" }}>
+                {s.idSampah || s.id || "-"}
+              </td>
+              <td style={{ padding: "8px", border: "1px solid #ddd" }}>
+                {s.namaSampah || s.nama}
+              </td>
+              {hargaKeys.map((key) => (
+                <td
+                  key={key}
+                  style={{
+                    padding: "8px",
+                    border: "1px solid #ddd",
+                    fontWeight: "bold",
+                    color: "#28a745",
+                    transition: "color 0.3s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#1e7e34")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "#28a745")}
+                >
+                  Rp {s.hargaPerBank?.[key] || s.harga?.[key] || s.prices?.[key] || "-"}
+                </td>
+              ))}
+              <td style={{ padding: "8px", border: "1px solid #ddd", whiteSpace: "nowrap" }}>
+                <ActionButton onClick={() => handleEdit(s)} title="Edit Data Sampah">
+                  Edit
+                </ActionButton>
+                <ActionButton
+                  onClick={() => handleDelete(s.idSampah || s.id)}
+                  color="#dc3545"
+                  title="Hapus Data Sampah"
+                >
+                  Hapus
+                </ActionButton>
+                <ActionButton
+                  onClick={() => openHargaModal(s)}
+                  color="#17a2b8"
+                  title="Edit Harga per Bank"
+                >
+                  Harga Per Bank
+                </ActionButton>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Modal Edit Harga */}
+      {showHargaModal && selectedSampah && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+          onClick={() => setShowHargaModal(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#fff",
+              padding: 20,
+              borderRadius: 8,
+              width: 400,
+              maxHeight: "80vh",
+              overflowY: "auto",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
+            }}
+          >
+            <h3>Edit Harga per Bank Sampah</h3>
+            {hargaKeys.map((key) => (
+              <div key={key} style={{ marginBottom: 12 }}>
+                <label
+                  htmlFor={`harga-per-bank-${key}`}
+                  style={{ display: "block", marginBottom: 4, fontWeight: "bold" }}
+                >
+                  {key}
+                </label>
+                <input
+                  id={`harga-per-bank-${key}`}
+                  type="number"
+                  min="0"
+                  value={editHarga[key] || ""}
+                  onChange={(e) =>
+                    setEditHarga((prev) => ({
+                      ...prev,
+                      [key]: e.target.value === "" ? "" : Number(e.target.value),
+                    }))
+                  }
+                  style={{
+                    width: "100%",
+                    padding: 8,
+                    borderRadius: 4,
+                    border: "1px solid #ccc",
+                    fontSize: 16,
+                  }}
+                />
+              </div>
+            ))}
+
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}>
+              <button
+                onClick={() => setShowHargaModal(false)}
+                style={{
+                  marginRight: 10,
+                  padding: "8px 16px",
+                  borderRadius: 4,
+                  border: "none",
+                  backgroundColor: "#6c757d",
+                  color: "#fff",
+                  cursor: "pointer",
+                }}
+              >
+                Batal
+              </button>
+              <button
+                onClick={saveHarga}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: 4,
+                  border: "none",
+                  backgroundColor: "#007bff",
+                  color: "#fff",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                }}
+              >
+                Simpan
+              </button>
             </div>
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-                    <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-lg">
-                        <h3 className="text-2xl font-bold text-slate-800 mb-6">{modalMode === 'add' ? 'Tambah Sampah Baru' : 'Edit Data Sampah'}</h3>
-                        <form onSubmit={handleFormSubmit}>
-                            <div className="mb-4">
-                                <label htmlFor="nama-sampah" className="block mb-2 text-sm font-medium text-slate-600">Nama Sampah</label>
-                                <input type="text" id="nama-sampah" defaultValue={selectedWaste ? selectedWaste.name : ''} className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500" required />
-                            </div>
-                            <div className="mb-4">
-                                <label htmlFor="kategori-sampah" className="block mb-2 text-sm font-medium text-slate-600">Kategori</label>
-                                <select id="kategori-sampah" defaultValue={selectedWaste ? selectedWaste.category : 'Plastik'} className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500">
-                                    <option>Plastik</option><option>Kertas</option><option>Logam</option><option>Kaca</option><option>Lainnya</option>
-                                </select>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                 <div>
-                                    <label htmlFor="harga-sampah" className="block mb-2 text-sm font-medium text-slate-600">Harga Beli</label>
-                                    <input type="number" id="harga-sampah" defaultValue={selectedWaste ? selectedWaste.price : ''} placeholder="contoh: 3000" className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500" required />
-                                </div>
-                                 <div>
-                                    <label htmlFor="satuan-sampah" className="block mb-2 text-sm font-medium text-slate-600">Satuan</label>
-                                    <select id="satuan-sampah" defaultValue={selectedWaste ? selectedWaste.unit : 'Kg'} className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500">
-                                        <option>Kg</option><option>Pcs</option><option>Ikat</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div className="flex justify-between items-center mb-6">
-                                 <label htmlFor="status-sampah" className="block text-sm font-medium text-slate-600">Status Aktif</label>
-                                 <div className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="status-sampah" className="sr-only peer" defaultChecked={selectedWaste ? selectedWaste.status === 'Aktif' : true} />
-                                    <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-teal-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-500"></div>
-                                </div>
-                            </div>
-                             <div className="flex justify-end gap-4">
-                                <button type="button" onClick={handleCloseModal} className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-lg transition-all">Batal</button>
-                                <button type="submit" className="px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-lg transition-all">Simpan</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-        </>
-    );
+          </div>
+        </div>
+      )}
+
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+    </div>
+  );
 };
+
 export default ManajemenSampah;
